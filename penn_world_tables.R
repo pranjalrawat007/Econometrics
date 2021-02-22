@@ -25,17 +25,24 @@ dim(df)
 glimpse(df)
 
 # Subset
-df_ind = filter(df, country=='India')
-df_ind = select(df_ind, year, rgdpo, pop, emp, hc)
-dim(df_ind)
+# df2 = filter(df, country=='Germany')
+df = select(df, country, year, rgdpo, pop, emp, hc)
+dim(df)
 
 # Summary
-summary(df_ind) # summary stats
-colSums(is.na(df_ind)) # null counts
-#count(df_ind, year) distinct counts per category
+summary(df2) # summary stats
+colSums(is.na(df2)) # null counts
 
-# New Cols
+# Time sieres 
+df2 = mutate(df2, rgdp_pc = (rgdpo-lag(rgdpo))*100/lag(rgdpo))
+df2 = mutate(df2, pop_pc = (pop-lag(pop))*100/lag(pop))
+df2 = mutate(df2, emp_pc = (emp-lag(emp))*100/lag(emp))
 
-df_ind = mutate(df_ind, rgdp_pc = rgdpo/pop)
-head(df_ind)
-lag(df_ind.year)
+# Extract single column
+df_year = df$year
+
+df %>% rownames_to_column() %>% as_tibble()
+
+install.packages("ggplot")
+library(ggplot)
+
