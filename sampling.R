@@ -1,33 +1,50 @@
+# RANDOM SAMPLING
+# Simple Random Sampling - each instance is independent and identically distributed (i.i.d). E.g.: roll of a dice, toss of a coin. 
+# Let Y be a random variable, let there be N instances. 
+# Sample Sum: S = sum(Ys)
+# The distribution of the sample sum (S) is called sampling distribution
+# Key point: the mean of S is equal to mean of Y(i), the variance of S is a fraction of variance of Y(i).
 
-# RANDOM SAMPLING 1
-# Simple Random Sampling - each instance is independent and identically distributed (i.i.d). Example, roll of a dice. 
+# Monte Carlo Simulation 1:
+# Let Y be Normally distributed
+# Generate R samples of size N each, calculate S using N observations, and get R number of Ss to plot Sampling Distribution
 
-# Let Y be a random variable e.g. Bernoulli Trial / Roll of Dice
-# Sample Sum (S): Rolling a dice 2 times and taking the Sum
-# Total possibilities for S: 2 to 12, Each is not equally likely
-# the distribution of the sample sum (S) is called sampling distribution
-S = sum(sample(1:6, 2, replace = T))
+# Y~N(10, 20)
+μ=10 
+σ=20
+r = function(x) rnorm(x, μ, σ)
+hist(r(100)) # Y Has high variance.
 
-# Key point: the mean of S is equal to mean of s(i), the variance of S is a fraction of s(i). Irrespective of distribution of s(i).
-# if Y was nromally distributed, 
+N = 100 # Sample Size
+R = 1000 # Repetitions
+samples = replicate(R, r(N)) 
 
-
-# Monte Carlo Simulation on Normal Random Variable:
-# generate R samples of size N each, calculate S using N observations, and get R number of Ss to plot Sampling Distribution
-
-N = 100
-R = 1000
-samples = replicate(R, rnorm(N, 10, 20)) # Y is allowed to be of high variance
-dim(samples)
-
-# collect Ss
+# Sample Average
 samples.avgs = colMeans(samples)
-hist(samples.avgs) # S is not high variance
+hist(samples.avgs) # S has lower variance, same mean
 
-# Monte Carlo Simulation 2: showing that SS for Nromals leads to Chi-Sq :
-N = 3
-R = 1000
-Z = replicate(R, rnorm(N)) # Y is Chi-Sq of DF 3.
-S = colSums(Z ^ 2)
-hist(S)
+# Monte Carlo Simulation 2:
+# Y is chi-Square
+M = 10
+r = function(x) rchisq(x, df=M)
+hist(r(100)) # Y is left skewed
 
+# Replicate
+N = 100 # Sample Size
+R = 1000 # Repetitions
+samples = replicate(R, r(N)) 
+
+# Sample Average
+samples.avgs = colMeans(samples)
+hist(samples.avgs) # S is normally distributed. 
+
+# Large Sample Approximation to Sampling Distribution
+# If Y's dist is known e.g. binomial, bernoulli, etc. Then you can analytically obtain the exact sample distribution
+# If Y's dist is unknown, then we want to approximate the "distribution of S, with N instances" from a large sample of Ys (Asymptotic distribution).
+
+# Law of large numbers (intuitive): in large samples, S is close to Expectation of Y, with very high probability. Or, in a large sample, the sample mean is very likely close to the population mean. As the sample size increases, the sample mean converges to the population mean. 
+# LLN is the basis for casinos. They know the way the cards are, the exact expected benefit. So even if someone wins big, they know that with enough trials, these wins will disappear and then the 'house always wins'.
+
+# Central Limit Theorem (astonishing): for any distribution Y, the sample mean calculated on N instances, will increasing look like a Normal distribution (with same mean as the population mean, and reduces variance), as N increases. In a sense, every distribution's mean behaves Normally. 
+
+#
