@@ -1,28 +1,47 @@
+# Basic Probability - RandInt, Binomial, Normal, Custom, Chi, t, F
+
 install.packages("stats")
 library("stats")
-set.seed(42)
+set.seed(42) # set pseudorandom seed for replication
 
-# Dice Roll
-sample(1:6, 1)
-pmf = rep(1/6, 6)
-cdf = cumsum(pmf)
-plot(pmf, xlab = 'x', 'main'='Probability')
-plot(cdf, xlab = 'x', 'main'='Probability')
+# RANDOM INTEGERS
+sample(1:100, 5, replace = TRUE)
 
-# R stats -> d:pdf/pmf, p:cdf, q:inverse cdf, r:sampling
-# Binomial
-n = 10
-p = 0.5
-dbinom(5, n, p) #Prob(x=5|n=10,p=0.5)
-sum(dbinom(5:8, n, p)) #Prob(5<=x<=8|n=10,p=0.5)
-pbinom(8, n, p) #P(x<5|n=10,p=0.5)
-Dx = 0:10 # domain
-pmf = dbinom(Dx, n, p) # Vector, Prob(x=k|n=10,p=0.5)
-cdf = cumsum(pmf)
-plot(pmf, xlab = 'x', 'main'='Probability')
-plot(cdf, xlab = 'x', 'main'='Probability')
+# BINOMIAL
+n = 10 # number of draws
+p = 0.3 # prob of heads
 
-# Normal Distribution
+# Prob Mass Function
+f = function(x) dbinom(x, n, p)
+f(2) #P(x=2)
+f(2:5) #P(2),P(3),P(4),P(5)
+sum(f(2:5)) #P(2<x<5)
+
+# Cum Mass Function
+c = function(x) pbinom(x, n, p)
+c(2) #P(x<2)
+c(2:4) #P(x<2), P(x<3), P(x<4)
+
+# Plotting PMF, CDF
+Dx = seq(0, 10, 1) # domain of Prob Mass Function
+plot(f(Dx), xlab = 'Number of Heads (x)', ylab = 'P(X=x)', main = 'PMF of Bin(10,0.3)')
+plot(c(Dx), xlab = 'Number of Heads (x)', ylab = 'P(X<x)', main = 'CMF of Bin(10,0.3)')
+
+# Sampling
+r = function(x) rbinom(x, n, p)
+x = r(100)
+hist(x, xlab = 'Sampled Values', main = 'Histogram of samples from BIN(10, 0.3)')
+
+# Summary Stats
+info = function(x) {
+	print(mean(x))
+	print(var(x))
+	print(summary(x))
+	hist(x, xlab = 'Sampled Values', main = 'Histogram of samples')
+	}
+info(x)
+
+# NORMAL
 dnorm(5, 10, 2) # P(x = 5 | mean = 10, stdev = 2)
 sum(dnorm(5:10, 10, 2)) # P(5 <= x <= 10| mean = 10, stdev = 2)
 pnorm(4, 10, 2) # P(x<10, 10, 2)
