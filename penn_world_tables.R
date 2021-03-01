@@ -7,7 +7,6 @@ wb = read_excel('pwt100.xlsx',
                 col_names = TRUE, 
                 na = "NA")
 
-
 legend = read_excel('pwt100.xlsx',
                 sheet = 'Legend',
                 col_names = TRUE, 
@@ -17,6 +16,8 @@ legend = read_excel('pwt100.xlsx',
 install.packages("dplyr")
 library("dplyr")
 df = data.frame(wb)
+
+
 
 # Peeking
 head(df) 
