@@ -1,37 +1,35 @@
-# you need to install car and data.table as well. 
-install.packages('lubridate')
-
-library(car)
-library(AER)
-library(dynlm)
-library(forecast)
-library(readxl)
-library(stargazer)
-library(scales)
-library(quantmod)
-library(urca)
-library(xts)
+# Set working directory
+setwd("~/Projects/rstudio/Econometrics-in-R")
+rm("c")
 
 # Load Annual Data
 library("readxl")
 # http://www.macrohistory.net/data/
 wb = read_excel('data/JSTdatasetR4.xlsx', sheet = 'Data')
-vars = c('year', 'country', 'gdp', 'cpi', 'pop', 'rconpc', 'iy', 'stir', 'narrowm', 'money')
-df = select(data.frame(wb), vars)
-df = as_tsibble(df, key='country', index = 'year')
+names( wb)
+vars = c("year","country", "rgdpmad", "cpi", "pop", "rconpc","hpnom", "iy", "stir", "narrowm", "money")
 
 # Pre-Processing
 library(tidyverse)
+library(dynlm)
 library(tsibble)
-df_clean = df %>% filter(year >= 1900 & year <= 1950 & country == 'France') %>% mutate(lgdp=log(gdp), inf=(cpi-lag(cpi))/cpi, lpop = log(pop), lcon = log(rconpc)) 
+δ=0.0000001
+df = select(data.frame(wb), vars)
+df = as_tsibble(df, key='country', index = 'year')
+df = df %>% mutate(gdp = rgdpmad * pop)
+df = df %>% filter(year >= 1920 & year <= 1940) #, country %in% vars
+df = df %>% mutate(gdp = log(gdp+ δ))
+df = df %>% group_by(country) %>% mutate(inflation=(cpi-lag(cpi))/cpi)
+df_clean = df %>% group_by(country) %>% mutate_at(c("gdp", "money", "rconpc", "inflation"), ~(scale(.) %>% as.vector))
 
-# Plotting Annual data
-plot_gdp = df_clean %>% ggplot(aes(x=year, y=lgdp, group=country)) + geom_line()
-plot_m = df_clean %>% ggplot(aes(x=year, y=money, group=country)) + geom_line() 
-plot_pop = df_clean %>% ggplot(aes(x=year, y=lpop, group=country)) + geom_line() 
-plot_inf = df_clean %>% ggplot(aes(x=year, y=inf, group=country)) + geom_line() 
-require(gridExtra)
-grid.arrange(plot_gdp, plot_m, plot_pop, plot_inf, ncol=2, nrow = 2)
+
+# Plotting
+library(gridExtra)
+output_norm = df_clean %>% ggplot(aes(x=year, y=gdp, group=country)) + geom_point() + geom_line()
+inflation = df_clean %>% ggplot(aes(x=year, y=inflation, group=country)) + geom_point() + geom_line() 
+M2_norm = df_clean %>% ggplot(aes(x=year, y=money, group=country)) + geom_point() + geom_line() 
+saving_rate = df_clean %>% filter(country != 'France') %>% ggplot(aes(x=year, y=iy, group=country)) + geom_point() + geom_line() 
+grid.arrange(output_pc_norm, inflation, M2_norm, saving_rate, ncol=2, nrow = 2)
 
 # Loading Quarterly Data
 library("readxl")
@@ -47,7 +45,6 @@ df = df %>% select(-year, -quarter)
 df_clean = df %>% mutate(output=log(RGNP72), inflation=(WPRICE67-lag(WPRICE67))/WPRICE67, msupply=log(M2), stock_idx = CSTOCK, int_rate = CPRATE, producer_eqpmnt = log(PRODUR72), building_nonresdnt = NONRES72, cons_nondur = CNDUR72, cons_durable = CDUR72, building_investmnt = IRES72)
 
 # Quarterly Plot 1
-
 output = df_clean %>% ggplot(aes(x=date, y=output)) + geom_point() + geom_line() + geom_rect(aes(xmin='1929-01-01', xmax='1933-01-01', ymin=0, ymax=Inf))
 
 grid.arrange(output, ncol=1, nrow = 1)
