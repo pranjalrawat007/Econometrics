@@ -1,19 +1,28 @@
 # Do oil prices effect GDP growth? If so, by how much? 
 # Quarterly Data from FRED, Avg Spot Oil Price (WTI) and US Real GDP YOY Growth
 
-rm(function)
+# Load Packages
 library("readxl")
 library(tidyverse)
 library(dynlm)
 library(tsibble)
+library(gridExtra)
+library(dplyr)
+library(xts)
+library(AER)
+library(quantmod)
+library(dynlm)
+library(orcutt)
+library(nlme)
+library(stargazer)
 
 # Load the Data
-library("readxl")
-setwd("~/Proj cts/rstudio/Econometrics-in-R")
+setwd("~/Projects/rstudio/Econometrics-in-R")
 wb = read_excel('data/US_gdp_WTI_oil.xls', skip = 11)
 names(wb) = c('DATE', 'OILPRICE', 'RGDPGROWTH')
 
 # Processing
+df = data.frame(wb)
 df$DATE = as.Date(as.yearqtr(df$DATE, "%Y-%M-%D"))
 df = df %>% mutate(OILPRICEGROWTH=(OILPRICE-lag(OILPRICE,4))/(lag(OILPRICE,4)+0.0001))
 df = df %>% filter(DATE >= '1948-01-01' & DATE <= '2020-10-01')
@@ -32,9 +41,39 @@ cor2 <- rollapply(df_xts,win,function(x) cor(as.numeric(x[, 3]), as.numeric(x[, 
 plot(cor1)
 plot(cor2)
 
+# Pre-Processing
 df = df %>% mutate(PRE = ifelse(DATE<=1990, 1, 0))
-
 df_pre = df %>% filter(PRE == 1)
-cor(df_pre$RGDPGROWTH, df_pre$OILPRICEGROWTH)
-model1 <- dynlm(df$RGDPGROWTH ~ df$OILPRICEGROWTH)
+RGDPGROWTH = zoo(df_pre$RGDPGROWTH)
+OILPRICE = zoo(df_pre$OILPRICE)
+
+# Model 1
+lags = 6
+model1 <- dynlm(RGDPGROWTH ~ L(OILPRICE, 0:lags))
 coeftest(model1, vcov. = vcovHAC)
+#linearHypothesis(model1, c("L(OILPRICE, 0:3)0=0", "L(OILPRICE, 0:3)1=0", "L(OILPRICE, 0:3)2=0", "L(OILPRICE, 0:3)3=0"), vcov. = vcovHAC,)
+
+SE <- list(sqrt(diag(NeweyWest(model1, lag = 7, prewhite = F)))) 
+point_estimates <- model1$coefficients
+CI_bounds <- cbind("lower" = point_estimates - 1.96 * SE[[1]],
+                   "upper" = point_estimates + 1.96 * SE[[1]])[-1, ]
+
+# IRF for Dynamic Multiplier
+plot(0:lags, point_estimates[-1], type = "l", lwd = 2, ylim = c(-0.4, 1),xlab = "Lag",ylab = "Dynamic multiplier",main = "Dynamic Effect of Oil Price on RGDP Growth")
+abline(h = 0, lty = 2)
+lines(0:lags, CI_bounds[,1], col = "darkred")
+lines(0:lags, CI_bounds[,2], col = "darkred")
+
+# Cumnulative DM
+model2 <- dynlm(RGDPGROWTH ~ L(d(OILPRICE), 0:lags))
+point_estimates <- model2$coefficients
+SE <- list(sqrt(diag(NeweyWest(model2, lag = 7, prewhite = F)))) 
+
+CI_bounds <- cbind("lower" = point_estimates - 1.96 * SE[[1]],
+                   "upper" = point_estimates + 1.96 * SE[[1]])[-1,]
+
+plot(0:lags, point_estimates[-1], type = "l", lwd = 2, ylim = c(-5, 0.4),xlab = "Lag",ylab = "Cum. Dynamic multiplier",main = "Cum. Dynamic Effect of Oil Price on RGDP Growth")
+abline(h = 0, lty = 2)
+lines(0:lags, CI_bounds[,1], col = "darkred")
+lines(0:lags, CI_bounds[,2], col = "darkred")
+	
