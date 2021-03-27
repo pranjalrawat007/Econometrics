@@ -2,7 +2,7 @@
 # Quarterly Data from FRED, Avg Crude Oil Price and India Real GDP YOY Growth
 
 # Load Packages
-library("readxl")
+library("deSolve")
 library(tidyverse)
 library(dynlm)
 library(tsibble)
@@ -51,7 +51,7 @@ OILPRICE = zoo(df$OILPRICE)
 lags = 4
 model1 <- dynlm(RGDPGROWTH ~ L(RGDPGROWTH) + L(OILPRICE, 0:lags))
 coeftest(model1, vcov. = vcovHAC)
-linearHypothesis(model1, c("L(OILPRICE, 0:lags)0=0", "L(OILPRICE, 0:lags)1=0", "L(OILPRICE, 0:lags)2=0", "L(OILPRICE, 0:lags)3=0", "L(OILPRICE, 0:lags)4=0", "L(OILPRICE, 0:lags)5=0"), vcov. = vcovHAC,)
+linearHypothesis(model1, c("L(OILPRICE, 0:lags)0=0", "L(OILPRICE, 0:lags)1=0", "L(OILPRICE, 0:lags)2=0", "L(OILPRICE, 0:lags)3=0", "L(OILPRICE, 0:lags)4=0", "L(OILPRICE, 0:lags)5=0"), vcov. = vcovHAC)
 
 
 SE <- list(sqrt(diag(NeweyWest(model1, lag = 7, prewhite = F)))) 
