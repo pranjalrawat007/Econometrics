@@ -1,5 +1,5 @@
-# Econometrics-in-R
-Econometrics and Statistics in R
+# Econometrics
+Econometrics and Statistics
 
 1. Syntax
 2. Data Handling
