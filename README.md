@@ -1,2 +1,2 @@
 # Econometrics
-Applied Econometrics and Statistics
+Applied Econometrics, Statistics and Bayesian Methods
