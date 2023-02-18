@@ -1,4 +1,4 @@
-# Statistical Models
-1. Simple Models from Scratch (OLS, MLE, etc.)
-2. Bayesian Models
-3. Time Series
+# Statistical-Learning
+1. Basics (OLS, MLE, MOM, etc.)
+2. Time Series - Trends, Spectral Methods, VARs
+3. Bayesian Models
